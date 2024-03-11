@@ -29,7 +29,7 @@ class LiveProfiler
     /** @var Connection */
     protected $Conn;
     /** @var null|string */
-    protected $db_name = null;
+    protected $db_table_name = null;
     /** @var LoggerInterface */
     protected $Logger;
     /** @var DataPackerInterface */
@@ -74,7 +74,7 @@ class LiveProfiler
 
         if ($mode === self::MODE_DB) {
             $this->connection_string = $connection_string_or_path ?: getenv('LIVE_PROFILER_CONNECTION_URL');
-            $this->db_name = getenv('LIVE_PROFILER_DB_NAME');
+            $this->db_table_name = getenv('LIVE_PROFILER_DB_NAME');
         } elseif ($mode === self::MODE_API) {
             if ($connection_string_or_path) {
                 $this->url = $connection_string_or_path;
@@ -596,7 +596,7 @@ class LiveProfiler
 
         try {
             return (bool)$this->getConnection()->insert(
-                $this->getDbName(),
+                $this->getDbTableName(),
                 [
                     'app' => $app,
                     'label' => $label,
@@ -674,13 +674,13 @@ class LiveProfiler
     /**
      * @return string
      */
-    private function getDbName()
+    private function getDbTableName()
     {
-        return $this->db_name ?: 'details';
+        return $this->db_table_name ?: 'details';
     }
 
-    public function setDbName($name)
+    public function setDbTableName($name)
     {
-        $this->db_name = $name;
+        $this->db_table_name = $name;
     }
 }
