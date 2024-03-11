@@ -679,8 +679,13 @@ class LiveProfiler
         return $this->db_table_name ?: 'details';
     }
 
+    /**
+     * @param $name
+     * @return $this
+     */
     public function setDbTableName($name)
     {
         $this->db_table_name = $name;
+        return $this;
     }
 }
