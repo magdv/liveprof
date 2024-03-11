@@ -1,8 +1,7 @@
 {
-  "name": "badoo/liveprof",
+  "name": "magdv/liveprof",
   "type": "library",
   "description": "A performance monitoring system for running on live sites",
-  "minimum-stability": "stable",
   "license": "MIT",
   "authors": [
     {
