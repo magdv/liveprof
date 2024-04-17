@@ -9,20 +9,12 @@ namespace Badoo\LiveProfiler;
 
 class DataPacker implements DataPackerInterface
 {
-    /**
-     * @param array $data
-     * @return string
-     */
-    public function pack(array $data)
+    public function pack(array $data): string
     {
         return json_encode($data);
     }
 
-    /**
-     * @param string $data
-     * @return array
-     */
-    public function unpack($data)
+    public function unpack(string $data): array
     {
         return json_decode($data, true);
     }

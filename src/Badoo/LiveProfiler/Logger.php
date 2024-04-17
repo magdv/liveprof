@@ -13,8 +13,7 @@ class Logger implements LoggerInterface
 {
     use LoggerTrait;
 
-    /** @var string */
-    protected $logfile;
+    protected string $logfile;
 
     /**
      * Logger constructor.
@@ -24,29 +23,18 @@ class Logger implements LoggerInterface
         $this->logfile = __DIR__ . '/../../../live.profiler.log';
     }
 
-    public function setLogFile($logfile)
+    public function setLogFile(string $logfile): void
     {
         $this->logfile = $logfile;
     }
 
-    /**
-     * @param mixed $level
-     * @param string $message
-     * @param array $context
-     */
-    public function log($level, $message, array $context = array())
+    public function log(mixed $level, string|\Stringable $message, array $context = array()): void
     {
         $log_string = $this->getLogMsg($level, $message, $context);
         file_put_contents($this->logfile, $log_string, FILE_APPEND);
     }
 
-    /**
-     * @param string $level
-     * @param string $message
-     * @param array $context
-     * @return string
-     */
-    protected function getLogMsg($level, $message, array $context = array())
+    protected function getLogMsg(mixed $level, string|\Stringable $message, array $context = array()): string
     {
         $log_string = sprintf("%s\t%s\t%s", date('Y-m-d H:i:s'), $level, $message);
 

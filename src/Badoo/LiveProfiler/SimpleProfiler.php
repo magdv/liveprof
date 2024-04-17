@@ -6,19 +6,20 @@
 
 namespace Badoo\LiveProfiler;
 
+use a;
+use b;
+
 class SimpleProfiler
 {
-    /**
-     * @var self
-     */
-    private static $instance;
+    private static ?SimpleProfiler $instance;
 
-    private $methods = [];
-    /** @var \SplStack */
-    private $stack;
-    private $is_enabled = false;
+    private array $methods = [];
 
-    public static function getInstance()
+    private \SplStack $stack;
+
+    private bool $is_enabled = false;
+
+    public static function getInstance(): self
     {
         if (self::$instance === null) {
             self::$instance = new static();
@@ -27,7 +28,7 @@ class SimpleProfiler
         return self::$instance;
     }
 
-    public function enable()
+    public function enable(): void
     {
         $this->is_enabled= true;
         $this->stack = new \SplStack();
@@ -35,7 +36,7 @@ class SimpleProfiler
         $this->startTimer('main()');
     }
 
-    public function disable()
+    public function disable(): array
     {
         $this->endTimer('main()');
 
@@ -48,7 +49,7 @@ class SimpleProfiler
         return $this->methods;
     }
 
-    public function startTimer($tag)
+    public function startTimer($tag): bool
     {
         if (!$this->is_enabled) {
             return false;
@@ -73,7 +74,7 @@ class SimpleProfiler
         return true;
     }
 
-    public function endTimer($tag)
+    public function endTimer($tag): bool
     {
         if (!$this->is_enabled) {
             return false;
@@ -96,7 +97,7 @@ class SimpleProfiler
         return true;
     }
 
-    private function getFullMethod($tag)
+    private function getFullMethod($tag): string
     {
         if ($this->stack->isEmpty()) {
             return $tag;

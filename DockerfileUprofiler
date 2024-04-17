@@ -1,4 +1,4 @@
-FROM php:5.4
+FROM php:8.0
 MAINTAINER Timur Shagiakhmetov <timur.shagiakhmetov@corp.badoo.com>
 
 COPY . /app

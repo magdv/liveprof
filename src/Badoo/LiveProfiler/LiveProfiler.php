@@ -6,9 +6,12 @@
 
 namespace Badoo\LiveProfiler;
 
+use b;
+use Closure;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class LiveProfiler
 {
@@ -16,51 +19,48 @@ class LiveProfiler
     CONST MODE_FILES = 'files';
     CONST MODE_API = 'api';
 
-    /** @var LiveProfiler */
-    protected static $instance;
-    /** @var string */
-    protected $mode = self::MODE_DB;
-    /** @var string */
-    protected $path = '';
-    /** @var string */
-    protected $api_key = '';
-    /** @var string */
-    protected $url = 'http://liveprof.org/api';
-    /** @var Connection */
-    protected $Conn;
-    /** @var null|string */
-    protected $db_table_name = null;
-    /** @var LoggerInterface */
-    protected $Logger;
-    /** @var DataPackerInterface */
-    protected $DataPacker;
-    /** @var string */
-    protected $connection_string;
-    /** @var string */
-    protected $app;
-    /** @var string */
-    protected $label;
-    /** @var string */
-    protected $datetime;
-    /** @var int */
-    protected $divider = 1000;
-    /** @var int */
-    protected $total_divider = 10000;
-    /** @var callable callback to start profiling */
-    protected $start_callback;
-    /** @var callable callback to end profiling */
-    protected $end_callback;
-    /** @var bool */
-    protected $is_enabled = false;
-    /** @var array */
-    protected $last_profile_data = [];
+    protected static ?LiveProfiler $instance;
+
+    protected string $mode = self::MODE_DB;
+
+    protected string $path = '';
+
+    protected string $api_key = '';
+
+    protected string $url = 'http://liveprof.org/api';
+
+    protected ?Connection $Conn;
+
+    protected ?string $db_table_name = null;
+
+    protected LoggerInterface $Logger;
+
+    protected DataPackerInterface $DataPacker;
+
+    protected string $connection_string;
+
+    protected string $app;
+
+    protected string $label;
+
+    protected string $datetime;
+
+    protected int $divider = 1000;
+
+    protected int $total_divider = 10000;
+
+    protected ?Closure $start_callback;
+
+    protected ?Closure $end_callback;
+
+    protected bool $is_enabled = false;
+
+    protected array $last_profile_data = [];
 
     /**
      * LiveProfiler constructor.
-     * @param string $connection_string_or_path
-     * @param string $mode
      */
-    public function __construct($connection_string_or_path = '', $mode = self::MODE_DB)
+    public function __construct(string $connection_string_or_path = '', string $mode = self::MODE_DB)
     {
         $this->mode = $mode;
 
@@ -86,7 +86,7 @@ class LiveProfiler
         }
     }
 
-    public static function getInstance($connection_string = '', $mode = self::MODE_DB)
+    public static function getInstance($connection_string = '', $mode = self::MODE_DB): self
     {
         if (self::$instance === null) {
             self::$instance = new static($connection_string, $mode);
@@ -95,7 +95,7 @@ class LiveProfiler
         return self::$instance;
     }
 
-    public function start()
+    public function start(): bool
     {
         if ($this->is_enabled) {
             return true;
@@ -123,7 +123,7 @@ class LiveProfiler
     /**
      * @return bool
      */
-    public function end()
+    public function end(): bool
     {
         if (!$this->is_enabled) {
             return true;
@@ -155,7 +155,7 @@ class LiveProfiler
         return $result;
     }
 
-    public function detectProfiler()
+    public function detectProfiler(): self
     {
         if (function_exists('xhprof_enable')) {
             return $this->useXhprof();
@@ -172,7 +172,7 @@ class LiveProfiler
         return $this->useSimpleProfiler();
     }
 
-    public function useXhprof()
+    public function useXhprof(): self
     {
         if ($this->is_enabled) {
             $this->Logger->warning('can\'t change profiler after profiling started');
@@ -190,7 +190,7 @@ class LiveProfiler
         return $this;
     }
 
-    public function useXhprofSample()
+    public function useXhprofSample(): self
     {
         if ($this->is_enabled) {
             $this->Logger->warning('can\'t change profiler after profiling started');
@@ -217,7 +217,7 @@ class LiveProfiler
         return $this;
     }
 
-    protected function convertSampleDataToCommonFormat(array $sampling_data)
+    protected function convertSampleDataToCommonFormat(array $sampling_data): array
     {
         $result_data = [];
         $prev_time = XHPROF_SAMPLING_BEGIN;
@@ -258,7 +258,7 @@ class LiveProfiler
         return $result_data;
     }
 
-    public function useTidyWays()
+    public function useTidyWays(): self
     {
         if ($this->is_enabled) {
             $this->Logger->warning('can\'t change profiler after profiling started');
@@ -276,7 +276,7 @@ class LiveProfiler
         return $this;
     }
 
-    public function useUprofiler()
+    public function useUprofiler(): self
     {
         if ($this->is_enabled) {
             $this->Logger->warning('can\'t change profiler after profiling started');
@@ -294,7 +294,7 @@ class LiveProfiler
         return $this;
     }
 
-    public function useSimpleProfiler()
+    public function useSimpleProfiler(): self
     {
         if ($this->is_enabled) {
             $this->Logger->warning('can\'t change profiler after profiling started');
@@ -312,10 +312,7 @@ class LiveProfiler
         return $this;
     }
 
-    /**
-     * @return bool
-     */
-    public function reset()
+    public function reset(): bool
     {
         if ($this->is_enabled) {
             call_user_func($this->end_callback);
@@ -325,29 +322,18 @@ class LiveProfiler
         return true;
     }
 
-    /**
-     * @param string $mode
-     * @return $this
-     */
-    public function setMode($mode)
+    public function setMode(string $mode): self
     {
         $this->mode = $mode;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getMode()
+    public function getMode(): string
     {
         return $this->mode;
     }
 
-    /**
-     * @param string $path
-     * @return $this
-     */
-    public function setPath($path)
+    public function setPath(string $path): self
     {
         if (!is_dir($path)) {
             $this->Logger->error('Directory ' . $path . ' does not exists');
@@ -357,159 +343,100 @@ class LiveProfiler
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
     }
 
-    /**
-     * @param string $api_key
-     * @return $this
-     */
-    public function setApiKey($api_key)
+    public function setApiKey(string $api_key): self
     {
         $this->api_key = $api_key;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getApiKey()
+    public function getApiKey(): string
     {
         return $this->api_key;
     }
 
-    /**
-     * @param string $app
-     * @return $this
-     */
-    public function setApp($app)
+    public function setApp(string $app): self
     {
         $this->app = $app;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getApp()
+    public function getApp(): string
     {
         return $this->app;
     }
 
-    /**
-     * @param string $label
-     * @return $this
-     */
-    public function setLabel($label)
+    public function setLabel(string $label): self
     {
         $this->label = $label;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getLabel()
+    public function getLabel(): string
     {
         return $this->label;
     }
 
-    /**
-     * @param string $datetime
-     * @return $this
-     */
-    public function setDateTime($datetime)
+    public function setDateTime(string $datetime): self
     {
         $this->datetime = $datetime;
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getDateTime()
+    public function getDateTime(): string
     {
         return $this->datetime;
     }
 
-    /**
-     * @param int $divider
-     * @return $this
-     */
-    public function setDivider($divider)
+    public function setDivider(string $divider): self
     {
         $this->divider = $divider;
         return $this;
     }
 
-    /**
-     * @param int $total_divider
-     * @return $this
-     */
-    public function setTotalDivider($total_divider)
+    public function setTotalDivider(string $total_divider): self
     {
         $this->total_divider = $total_divider;
         return $this;
     }
 
-    /**
-     * @param \Closure $start_callback
-     * @return $this
-     */
-    public function setStartCallback(\Closure $start_callback)
+    public function setStartCallback(\Closure $start_callback): self
     {
         $this->start_callback = $start_callback;
         return $this;
     }
 
-    /**
-     * @param \Closure $end_callback
-     * @return $this
-     */
-    public function setEndCallback(\Closure $end_callback)
+    public function setEndCallback(\Closure $end_callback): self
     {
         $this->end_callback = $end_callback;
         return $this;
     }
 
-    /**
-     * @param LoggerInterface $Logger
-     * @return $this
-     */
-    public function setLogger(LoggerInterface $Logger)
+    public function setLogger(LoggerInterface $Logger): self
     {
         $this->Logger = $Logger;
         return $this;
     }
 
-    /**
-     * @param DataPackerInterface $DataPacker
-     * @return $this
-     */
-    public function setDataPacker($DataPacker)
+    public function setDataPacker($DataPacker): self
     {
         $this->DataPacker = $DataPacker;
         return $this;
     }
 
-    /**
-     * @return array
-     */
-    public function getLastProfileData()
+    public function getLastProfileData(): array
     {
         return $this->last_profile_data;
     }
 
     /**
-     * @return Connection
-     * @throws DBALException
+     * @throws Exception
      */
-    protected function getConnection()
+    protected function getConnection(): Connection
     {
         if (null === $this->Conn) {
             $config = new \Doctrine\DBAL\Configuration();
@@ -520,34 +447,19 @@ class LiveProfiler
         return $this->Conn;
     }
 
-    /**
-     * @param Connection $Conn
-     * @return $this
-     */
-    public function setConnection(Connection $Conn)
+    public function setConnection(Connection $Conn): self
     {
         $this->Conn = $Conn;
         return $this;
     }
 
-    /**
-     * @param string $connection_string
-     * @return $this
-     */
-    public function setConnectionString($connection_string)
+    public function setConnectionString(string $connection_string): self
     {
         $this->connection_string = $connection_string;
         return $this;
     }
 
-    /**
-     * @param string $app
-     * @param string $label
-     * @param string $datetime
-     * @param array $data
-     * @return bool
-     */
-    protected function save($app, $label, $datetime, $data)
+    protected function save(string $app, string $label, string $datetime, array $data): bool
     {
         if ($this->mode === self::MODE_DB) {
             return $this->saveToDB($app, $label, $datetime, $data);
@@ -560,14 +472,7 @@ class LiveProfiler
         return $this->saveToFile($app, $label, $datetime, $data);
     }
 
-    /**
-     * @param string $app
-     * @param string $label
-     * @param string $datetime
-     * @param array $data
-     * @return bool
-     */
-    protected function sendToAPI($app, $label, $datetime, $data)
+    protected function sendToAPI(string $app, string $label, string $datetime, array $data): bool
     {
         $data = $this->DataPacker->pack($data);
         $api_key = $this->api_key;
@@ -583,14 +488,7 @@ class LiveProfiler
         return $http_code === 200;
     }
 
-    /**
-     * @param string $app
-     * @param string $label
-     * @param string $datetime
-     * @param array $data
-     * @return bool
-     */
-    protected function saveToDB($app, $label, $datetime, $data)
+    protected function saveToDB(string $app, string $label, string $datetime, array $data): bool
     {
         $packed_data = $this->DataPacker->pack($data);
 
@@ -604,20 +502,13 @@ class LiveProfiler
                     'timestamp' => $datetime
                 ]
             );
-        } catch (DBALException $Ex) {
+        } catch (Throwable $Ex) {
             $this->Logger->error('Error in insertion profile data: ' . $Ex->getMessage());
             return false;
         }
     }
 
-    /**
-     * @param string $app
-     * @param string $label
-     * @param string $datetime
-     * @param array $data
-     * @return bool
-     */
-    private function saveToFile($app, $label, $datetime, $data)
+    private function saveToFile(string $app, string $label, string $datetime, array $data): bool
     {
         $path = sprintf('%s/%s/%s', $this->path, $app, base64_encode($label));
 
@@ -632,11 +523,12 @@ class LiveProfiler
     }
 
     /**
-     * @throws DBALException
+     * @return bool
+     * @throws Exception
      */
-    public function createTable()
+    public function createTable(): bool
     {
-        $driver_name = $this->getConnection()->getDriver()->getName();
+        $driver_name = $this->getConnection()->getDriver()->getDatabasePlatform()->getName();
         $sql_path = __DIR__ . '/../../../bin/install_data/' . $driver_name . '/source.sql';
         if (!file_exists($sql_path)) {
             $this->Logger->error('Invalid sql path:' . $sql_path);
@@ -645,14 +537,11 @@ class LiveProfiler
 
         $sql = file_get_contents($sql_path);
 
-        $this->getConnection()->exec($sql);
+        $this->getConnection()->executeStatement($sql);
         return true;
     }
 
-    /**
-     * @return string
-     */
-    protected function getAutoLabel()
+    protected function getAutoLabel(): string
     {
         if (!empty($_SERVER['REQUEST_URI'])) {
             $label = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -662,28 +551,17 @@ class LiveProfiler
         return $_SERVER['SCRIPT_NAME'];
     }
 
-    /**
-     * @param int $divider
-     * @return bool
-     */
-    protected function needToStart($divider)
+    protected function needToStart(int $divider): bool
     {
         return mt_rand(1, $divider) === 1;
     }
 
-    /**
-     * @return string
-     */
-    private function getDbTableName()
+    private function getDbTableName(): string
     {
         return $this->db_table_name ?: 'details';
     }
 
-    /**
-     * @param $name
-     * @return $this
-     */
-    public function setDbTableName($name)
+    public function setDbTableName(string $name): self
     {
         $this->db_table_name = $name;
         return $this;

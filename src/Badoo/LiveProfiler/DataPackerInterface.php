@@ -8,15 +8,7 @@ namespace Badoo\LiveProfiler;
 
 interface DataPackerInterface
 {
-    /**
-     * @param array $data
-     * @return string
-     */
-    public function pack(array $data);
+    public function pack(array $data): string;
 
-    /**
-     * @param string $data
-     * @return array
-     */
-    public function unpack($data);
+    public function unpack(string $data): array;
 }
