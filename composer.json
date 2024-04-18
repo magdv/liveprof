@@ -11,7 +11,7 @@
   "require": {
     "php": ">=8.0",
     "doctrine/dbal": "~3.0",
-    "psr/log": "~3.0",
+    "psr/log": "^3",
     "ext-json": "*",
     "ext-zlib": "*",
     "ext-curl": "*"
