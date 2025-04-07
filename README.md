@@ -111,7 +111,6 @@ There is a full list of methods you can use to change options:
     ->setTotalDivider(7000) // optional, profiling starts for 1 of 7000 requests with forces label "All", 10000 by default
     ->setLogger($Logger) // optional, a custom logger implemented \Psr\Log\LoggerInterface
     ->setConnection($Connection) // optional, a custom instance of \Doctrine\DBAL\Connection if you can't use the connection url
-    ->setDbTableName("liveproof") // optional, a custom db name, you can also set set table name int the env var LIVE_PROFILER_DB_TABLE_NAME
     ->setDataPacker($DatePacker) // optional, a class implemented \Badoo\LiveProfiler\DataPackerInterface to convert array into string
     ->setStartCallback($profiler_start_callback) // optional, set it if you use custom profiler
     ->setEndCallback($profiler_profiler_callback) // optional, set it if you use custom profiler
@@ -145,8 +144,6 @@ Environment Variables
 =====================
 
 `LIVE_PROFILER_CONNECTION_URL`: [url](https://www.doctrine-project.org/projects/doctrine-dbal/en/2.8/reference/configuration.html#configuration) for the database connection
-
-`LIVE_PROFILER_DB_TABLE_NAME`: name of db table that store logs
 
 `LIVE_PROFILER_PATH`: path to save profiles in \Badoo\LiveProfiler\LiveProfiler::MODE_FILES mode
 
