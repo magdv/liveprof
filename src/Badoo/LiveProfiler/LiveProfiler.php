@@ -19,7 +19,7 @@ class LiveProfiler
     CONST MODE_FILES = 'files';
     CONST MODE_API = 'api';
 
-    protected static ?LiveProfiler $instance;
+    protected static ?LiveProfiler $instance = null;
 
     protected string $mode = self::MODE_DB;
 
@@ -29,7 +29,7 @@ class LiveProfiler
 
     protected string $url = 'http://liveprof.org/api';
 
-    protected ?Connection $Conn;
+    protected ?Connection $Conn = null;
 
     protected LoggerInterface $Logger;
 
@@ -47,9 +47,9 @@ class LiveProfiler
 
     protected int $total_divider = 10000;
 
-    protected ?Closure $start_callback;
+    protected ?Closure $start_callback = null;
 
-    protected ?Closure $end_callback;
+    protected ?Closure $end_callback = null;
 
     protected bool $is_enabled = false;
 
@@ -85,11 +85,7 @@ class LiveProfiler
 
     public static function getInstance($connection_string = '', $mode = self::MODE_DB): self
     {
-        if (self::$instance === null) {
-            self::$instance = new static($connection_string, $mode);
-        }
-
-        return self::$instance;
+        return self::$instance ??= new static($connection_string, $mode);
     }
 
     public function start(): bool
